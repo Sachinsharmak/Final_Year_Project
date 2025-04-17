@@ -1,0 +1,18 @@
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with watchdog (inotify)
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 121-683-366
+ERROR:root:Error in prediction: name 'correct_spelling' is not defined
+INFO:werkzeug:127.0.0.1 - - [08/Feb/2025 15:42:41] "POST /predict HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [08/Feb/2025 15:42:41] "[36mGET /static/img.png HTTP/1.1[0m" 304 -
+ERROR:root:Error in prediction: name 'correct_spelling' is not defined
+INFO:werkzeug:127.0.0.1 - - [08/Feb/2025 15:42:51] "POST /predict HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [08/Feb/2025 15:42:51] "[36mGET /static/img.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [08/Feb/2025 15:42:53] "POST /predict HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [08/Feb/2025 15:42:53] "[36mGET /static/img.png HTTP/1.1[0m" 304 -
+INFO:werkzeug: * Detected change in '/home/sachin/Disease-Prediction-and-Medical-Recommendation-System/main.py', reloading
+INFO:werkzeug: * Detected change in '/home/sachin/Disease-Prediction-and-Medical-Recommendation-System/main.py', reloading
+INFO:werkzeug: * Detected change in '/home/sachin/Disease-Prediction-and-Medical-Recommendation-System/main.py', reloading
+INFO:werkzeug: * Restarting with watchdog (inotify)

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Health Care Center | Disease Prediction System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">    
+    <style>
+        :root {
+            --primary-color: #2C3E50;
+            --accent-color: #3498DB;
+            --light-bg: rgba(255, 255, 255, 0.95);
+            --gradient-start: #2C3E50;
+            --gradient-end: #3498DB;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end)) !important;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .logo:hover {
+            opacity: 0.9;
+        }
+
+        .myimg {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover .myimg {
+            transform: scale(1.1);
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--light-bg);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-control {
+            border: 2px solid #e9ecef;
+            padding: 1rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .btn-predict {
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            border: none;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .results-container {
+            margin-top: 2rem;
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .message-text {
+            color: #dc3545;
+            font-weight: 500;
+            padding: 0.5rem;
+            border-radius: 8px;
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+
+        .results-header {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .footer {
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .footer h6 {
+            margin: 0;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        ul li {
+            padding: 0.5rem 0;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        ul li:before {
+            content: '•';
+            color: var(--accent-color);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+
+            .btn-predict {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a href="/" class="logo">
+                <img class="myimg" src="static/img.png" alt="Healthcare Logo">
+                <h5 class="mb-0 text-white">Disease Prediction System</h5>
+            </a>
+            <div class="navbar-nav ms-auto">
+                {% if username %}
+                    <span class="navbar-text text-white me-3">Welcome, {{ username }}!</span>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/history">History</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/logout">Logout</a>
+                        </li>
+                    </ul>
+                {% else %}
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/login">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/signup">Sign Up</a>
+                        </li>
+                    </ul>
+                {% endif %}
+            </div> 
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <form action="/predict" method="post" id="predictionForm">
+            <div class="form-group">
+                <label for="symptoms" class="h5 mb-3">What symptoms are you experiencing?</label>
+                <input type="text" class="form-control" id="symptoms" name="symptoms" 
+                       placeholder="Enter symptoms (e.g., headache, mild fever, acidity...)" 
+                       autocomplete="off">
+            </div>
+            
+            {% if message %}
+            <div class="alert message-text mt-3">
+                <i class="fas fa-exclamation-circle me-2"></i>{{ message }}
+            </div>
+            {% endif %}
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-predict">
+                    <i class="fas fa-stethoscope me-2"></i>Analyze Symptoms
+                </button>
+            </div>
+        </form>
+
+        {% if predicted_disease %}
+        <div class="results-container">
+            <h4 class="results-header">
+                <i class="fas fa-clipboard-check me-2"></i>Analysis Results
+            </h4>
+            <div class="mb-3">
+                <span class="text-muted">Symptoms analyzed:</span>
+                <span class="fw-medium">{{symptoms}}</span>
+            </div>
+            <table class="table table-hover">
+                <tbody>
+                    <tr>
+                        <th scope="row" width="25%">Predicted Condition</th>
+                        <td class="fw-medium text-primary">{{predicted_disease}}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Description</th>
+                        <td>{{ dis_des }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Precautions</th>
+                        <td>
+                            <ul>
+                                {% for i in my_precautions %}
+                                    <li>{{ i }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Recommended Medications</th>
+                        <td>
+                            <ul>
+                                {% for i in medications %}
+                                    <li>{{ i }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Exercise Recommendations</th>
+                        <td>
+                            <ul>
+                                {% for i in workout %}
+                                    <li>{{ i }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Dietary Advice</th>
+                        <td>
+                            <ul>
+                                {% for i in my_diet %}
+                                    <li>{{ i }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="footer">
+        <h6><i class="fas fa-code me-2"></i>Developed by:Sachin, Ritesh, Faisal, Bikash</h6>
+    </div>
+
+    <script>
+        function resetForm() {
+            document.getElementById("predictionForm").reset();
+        }
+    </script>
+</body>
+</html>
