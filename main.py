@@ -9,10 +9,10 @@ import uuid
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = "pf9Wkove4IKEAXvy-cQkeDPhv9Cb3Ag-wyJILbq_dFw" # Replace with a strong, randomly generated secret key
+app.secret_key = "##########" # Replace with a strong, randomly generated secret key
 
 # MongoDB Configuration
-app.config["MONGO_URI"] = "mongodb+srv://89272sachin06:LjE1HtHHOYc5Znwi@microblog.5hnpk.mongodb.net/medical_db" # Replace if needed
+app.config["MONGO_URI"] = "################" # Replace if needed
 mongo = PyMongo(app)
 
 # MongoDB Collections
