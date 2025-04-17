@@ -1,7 +1,5 @@
 # Disease Prediction and Medical Recommendation System 🩺
 
-This repository contains the implementation of a Disease Prediction and Medical Recommendation System developed for the CS 584 Machine Learning course.
-
 ## Introduction
 The Disease Prediction and Medical Recommendation System leverages machine learning techniques to predict diseases based on user-entered symptoms. It provides recommendations for medications, diets, and workouts tailored to specific diseases. The project uses a dataset from Kaggle comprising symptoms, diseases, medications, and other medical attributes to train and evaluate machine learning models.
 
@@ -23,6 +21,8 @@ The project files are organized into the following directories:
 
 ### 3. templates
 - `index.html`: Frontend interface for the Disease Prediction System.
+- `signup.html`: Signup Page
+- `login.html`: Login Page to let user login afer signup.
 
 ### 4. static
 - `bgCover.jpg`, `img.png` : Images utilized in the frontend webpage.
@@ -44,7 +44,7 @@ To run the Disease Prediction and Medical Recommendation System:
 
 3. **Start the Flask application:**
    ```bash
-   python main.py
+   python3 main.py
 
 4. **Access the web interface in your browser at:**
    ```bash
@@ -52,14 +52,7 @@ To run the Disease Prediction and Medical Recommendation System:
 
 ## Team Members
 
-- Tanmay Pramanick - A20541164
-- Kunal Rajput - A20540912
-- Soham Sonar - A20541266
-
-## Project Files Overview
-
-- `main.py`: Entry point for the Flask web application.
-- `disease_prediction_system.ipynb`: Jupyter Notebook with data preprocessing and model training.
-- `CS584_Project_Report.pdf`: Detailed report on methodologies, model evaluation, results, and future enhancements.
-- `index.html`: Front-end interface for the web application.
-
+- Sachin Kumar Sharma - 2152055
+- Ritesh Raj - 2152064
+- Bikash Kumar Yadav - 2152058
+- Md. Faisal Kalim - 2152060
