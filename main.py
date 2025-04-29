@@ -1,7 +1,8 @@
-from flask import Flask, request, render_template, redirect, url_for, session
+from flask import Flask, request, render_template, redirect, url_for, session, flash
 from flask_pymongo import PyMongo
 import numpy as np
 import pandas as pd
+from werkzeug.security import generate_password_hash, check_password_hash
 import pickle
 from fuzzywuzzy import process
 import ast
@@ -9,104 +10,203 @@ import uuid
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = "pf9Wkove4IKEAXvy-cQkeDPhv9Cb3Ag-wyJILbq_dFw" # Replace with a strong, randomly generated secret key
-
-# MongoDB Configuration
-app.config["MONGO_URI"] = "mongodb+srv://89272sachin06:LjE1HtHHOYc5Znwi@microblog.5hnpk.mongodb.net/medical_db" # Replace if needed
+app.secret_key = "General_Secret_Key"
+app.config["MONGO_URI"] = "Enter MongoDb Connection String Here"  
 mongo = PyMongo(app)
 
-# MongoDB Collections
 users = mongo.db.users
 predictions = mongo.db.predictions
 
+DATA_DIR = "kaggle_dataset/" 
+sym_des = pd.read_csv(DATA_DIR + "symptoms_df.csv")
+precautions = pd.read_csv(DATA_DIR + "precautions_df.csv")
+workout = pd.read_csv(DATA_DIR + "workout_df.csv")
+description = pd.read_csv(DATA_DIR + "description.csv")
+medications = pd.read_csv(DATA_DIR + 'medications.csv')
+diets = pd.read_csv(DATA_DIR + "diets.csv")
+
+dataset = pd.read_csv(DATA_DIR + "Training.csv")  
+
+serious_diseases = ["Heart attack", "Stroke", "Paralysis", "Pneumonia", "Tuberculosis"]  
+
+DEFAULT_PRECAUTIONS = "Please consult with a doctor immediately, it appears to be something critical. Do not ignore this."
+
+doctors_database = [
+    {
+        "Name": "Dr. Ritesh Raj",
+        "Disease": "Heart attack",
+        "For_emergency": True,
+        "Hospital": "AIIMS Delhi",
+        "Contact": "+91-93239*****"
+    },
+    {
+        "Name": "Dr. Anjali Verma",
+        "Disease": "Stroke",
+        "For_emergency": True,
+        "Hospital": "Fortis Hospital Mumbai",
+        "Contact": "+91-91234*****"
+    },
+    {
+        "Name": "Dr. Suresh Iyer",
+        "Disease": "Tuberculosis",
+        "For_emergency": False,
+        "Hospital": "Apollo Hospital Chennai",
+        "Contact": "+91-99887*****"
+    }
+]
 
 
-# Loading the datasets from Kaggle website
-
-sym_des = pd.read_csv("kaggle_dataset/symptoms_df.csv")
-precautions = pd.read_csv("kaggle_dataset/precautions_df.csv")
-workout = pd.read_csv("kaggle_dataset/workout_df.csv")
-description = pd.read_csv("kaggle_dataset/description.csv")
-medications = pd.read_csv('kaggle_dataset/medications.csv')
-diets = pd.read_csv("kaggle_dataset/diets.csv")
-
-Rf = pickle.load(open('model/RandomForest.pkl','rb'))
 
 
-# Here we make a dictionary of symptoms and diseases and preprocess it
+Random_Forest = pickle.load(open('model/RandomForest.pkl', 'rb'))
 
-symptoms_list = {'itching': 0, 'skin_rash': 1, 'nodal_skin_eruptions': 2, 'continuous_sneezing': 3, 'shivering': 4, 'chills': 5, 'joint_pain': 6, 'stomach_pain': 7, 'acidity': 8, 'ulcers_on_tongue': 9, 'muscle_wasting': 10, 'vomiting': 11, 'burning_micturition': 12, 'spotting_ urination': 13, 'fatigue': 14, 'weight_gain': 15, 'anxiety': 16, 'cold_hands_and_feets': 17, 'mood_swings': 18, 'weight_loss': 19, 'restlessness': 20, 'lethargy': 21, 'patches_in_throat': 22, 'irregular_sugar_level': 23, 'cough': 24, 'high_fever': 25, 'sunken_eyes': 26, 'breathlessness': 27, 'sweating': 28, 'dehydration': 29, 'indigestion': 30, 'headache': 31, 'yellowish_skin': 32, 'dark_urine': 33, 'nausea': 34, 'loss_of_appetite': 35, 'pain_behind_the_eyes': 36, 'back_pain': 37, 'constipation': 38, 'abdominal_pain': 39, 'diarrhoea': 40, 'mild_fever': 41, 'yellow_urine': 42, 'yellowing_of_eyes': 43, 'acute_liver_failure': 44, 'fluid_overload': 45, 'swelling_of_stomach': 46, 'swelled_lymph_nodes': 47, 'malaise': 48, 'blurred_and_distorted_vision': 49, 'phlegm': 50, 'throat_irritation': 51, 'redness_of_eyes': 52, 'sinus_pressure': 53, 'runny_nose': 54, 'congestion': 55, 'chest_pain': 56, 'weakness_in_limbs': 57, 'fast_heart_rate': 58, 'pain_during_bowel_movements': 59, 'pain_in_anal_region': 60, 'bloody_stool': 61, 'irritation_in_anus': 62, 'neck_pain': 63, 'dizziness': 64, 'cramps': 65, 'bruising': 66, 'obesity': 67, 'swollen_legs': 68, 'swollen_blood_vessels': 69, 'puffy_face_and_eyes': 70, 'enlarged_thyroid': 71, 'brittle_nails': 72, 'swollen_extremeties': 73, 'excessive_hunger': 74, 'extra_marital_contacts': 75, 'drying_and_tingling_lips': 76, 'slurred_speech': 77, 'knee_pain': 78, 'hip_joint_pain': 79, 'muscle_weakness': 80, 'stiff_neck': 81, 'swelling_joints': 82, 'movement_stiffness': 83, 'spinning_movements': 84, 'loss_of_balance': 85, 'unsteadiness': 86, 'weakness_of_one_body_side': 87, 'loss_of_smell': 88, 'bladder_discomfort': 89, 'foul_smell_of urine': 90, 'continuous_feel_of_urine': 91, 'passage_of_gases': 92, 'internal_itching': 93, 'toxic_look_(typhos)': 94, 'depression': 95, 'irritability': 96, 'muscle_pain': 97, 'altered_sensorium': 98, 'red_spots_over_body': 99, 'belly_pain': 100, 'abnormal_menstruation': 101, 'dischromic _patches': 102, 'watering_from_eyes': 103, 'increased_appetite': 104, 'polyuria': 105, 'family_history': 106, 'mucoid_sputum': 107, 'rusty_sputum': 108, 'lack_of_concentration': 109, 'visual_disturbances': 110, 'receiving_blood_transfusion': 111, 'receiving_unsterile_injections': 112, 'coma': 113, 'stomach_bleeding': 114, 'distention_of_abdomen': 115, 'history_of_alcohol_consumption': 116, 'fluid_overload.1': 117, 'blood_in_sputum': 118, 'prominent_veins_on_calf': 119, 'palpitations': 120, 'painful_walking': 121, 'pus_filled_pimples': 122, 'blackheads': 123, 'scurring': 124, 'skin_peeling': 125, 'silver_like_dusting': 126, 'small_dents_in_nails': 127, 'inflammatory_nails': 128, 'blister': 129, 'red_sore_around_nose': 130, 'yellow_crust_ooze': 131}
-diseases_list = {15: 'Fungal infection', 4: 'Allergy', 16: 'GERD', 9: 'Chronic cholestasis', 14: 'Drug Reaction', 33: 'Peptic ulcer diseae', 1: 'AIDS', 12: 'Diabetes ', 17: 'Gastroenteritis', 6: 'Bronchial Asthma', 23: 'Hypertension ', 30: 'Migraine', 7: 'Cervical spondylosis', 32: 'Paralysis (brain hemorrhage)', 28: 'Jaundice', 29: 'Malaria', 8: 'Chicken pox', 11: 'Dengue', 37: 'Typhoid', 40: 'hepatitis A', 19: 'Hepatitis B', 20: 'Hepatitis C', 21: 'Hepatitis D', 22: 'Hepatitis E', 3: 'Alcoholic hepatitis', 36: 'Tuberculosis', 10: 'Common Cold', 34: 'Pneumonia', 13: 'Dimorphic hemmorhoids(piles)', 18: 'Heart attack', 39: 'Varicose veins', 26: 'Hypothyroidism', 24: 'Hyperthyroidism', 25: 'Hypoglycemia', 31: 'Osteoarthristis', 5: 'Arthritis', 0: '(vertigo) Paroymsal  Positional Vertigo', 2: 'Acne', 38: 'Urinary tract infection', 35: 'Psoriasis', 27: 'Impetigo'}
-
-symptoms_list_processed = {symptom.replace('_', ' ').lower(): value for symptom, value in symptoms_list.items()}
-
-# Here we created a function (information) to extract information from all the datasets
-
-def information(predicted_dis):
-    disease_desciption = description[description['Disease'] == predicted_dis]['Description']
-    disease_desciption = " ".join([w for w in disease_desciption])
-
-    disease_precautions = precautions[precautions['Disease'] == predicted_dis][['Precaution_1', 'Precaution_2', 'Precaution_3', 'Precaution_4']]
-    disease_precautions = [col for col in disease_precautions.values]
-
-    disease_medications = medications[medications['Disease'] == predicted_dis]['Medication']
-    disease_medications = [med for med in disease_medications.values]
-
-    disease_diet = diets[diets['Disease'] == predicted_dis]['Diet']
-    disease_diet = [die for die in disease_diet.values]
-
-    disease_workout = workout[workout['disease'] == predicted_dis] ['workout']
+symptoms_dictionary = {symptom.replace('_', ' ').lower(): index for index, symptom in enumerate(dataset.columns[:-1])}
 
 
-    return disease_desciption, disease_precautions, disease_medications, disease_diet, disease_workout
+diseases_dict = {index: disease for index, disease in enumerate(sorted(dataset.prognosis.unique()))}
 
+# Prediction functions
+def predict_disease(patient_symptoms):
+    symptom_vector = np.zeros(len(symptoms_dictionary))
+    for symptom in patient_symptoms:
+        try:
+            symptom_vector[symptoms_dictionary[symptom]] = 1
+        except KeyError:
+            return None
 
-# This is the function that passes the user input symptoms to our Model
-def predicted_value(patient_symptoms):
-    i_vector = np.zeros(len(symptoms_list_processed))
-    for i in patient_symptoms:
-        i_vector[symptoms_list_processed[i]] = 1
-    return diseases_list[Rf.predict([i_vector])[0]]
-
-# Function to correct the spellings of the symptom (if any)
-def correct_spelling(symptom):
-    closest_match, score = process.extractOne(symptom, symptoms_list_processed.keys())
-    # If the similarity score is above a certain threshold, consider it a match
-    if score >= 80:
-        return closest_match
-    else:
+    try:
+        predicted_prognosis = Random_Forest.predict([symptom_vector])[0]
+        return diseases_dict.get(predicted_prognosis, None)
+    except Exception as e:
+        print(f"Prediction error: {e}")
         return None
 
+def correct_symptom_spelling(symptom, spell_threshold=80):
+    try:
+        closest_match = process.extractOne(symptom, symptoms_dictionary.keys())
+        if closest_match:
+            matched_symptom, score = closest_match
+            return matched_symptom if score >= spell_threshold else None
+        return None
+    except Exception as e:
+        print(f" Please Check the Spelling of the Symptoms: {e}")
+        return None
 
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']  # In a real app, HASH the password securely!!
-        user_id = str(uuid.uuid4())
-        users.insert_one({'user_id': user_id, 'username': username, 'password': password})
-        return redirect(url_for('login'))
-    return render_template('signup.html')
+def fetch_articles(disease, num_articles=3):
+    try:
+        from googlesearch import search
+        search_query = f"{disease} medical condition treatment"
+        articles = list(search(search_query, num_results=num_articles))
+        return articles
+    except ImportError:
+        return ["Unable to load articles related to it. Please consult your healthcare provider for more information."]
+    except Exception as e:
+        print(f"Article not Found: {e}")
+        return []
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = users.find_one({'username': username, 'password': password})
-        if user:
-            session['user_id'] = user['user_id']
-            return redirect(url_for('index'))
+def personalized_workout(disease, age=None, fitness_level=None, other_conditions=None):
+    if any(disease == d for d in serious_diseases):
+        return f"For {disease}, it's crucial to consult your healthcare provider regarding exercise. Some options, upon medical approval, might include:"
+    
+    try:
+        general_workout = workout[workout['disease'] == disease]['workout'].iloc[0] if not workout[workout['disease'] == disease].empty else None
+        
+        if general_workout:
+            if other_conditions:
+                additional_info = f"Note: Your other condition(s) ({', '.join(other_conditions)}) may impact exercise suitability."
+                return f"{general_workout}\n\n{additional_info}"
+            
+            if age and age > 60:
+                return f"{general_workout}\n\nNote: Since you're over 60, please make sure that these exercises are approved by your doctor."
+                
+            if fitness_level:
+                return f"{general_workout}\n\nAdjust intensity based on your {fitness_level} fitness level."
+                
+            return general_workout
         else:
-            return render_template('login.html', error="Invalid credentials.")
-    return render_template('login.html')
+            return "No specific workout information is available for this condition. Please consult with your healthcare provider."
+    except Exception as e:
+        print(f"Workout advice error: {e}")
+        return "Unable to provide workout recommendations. Please consult with your healthcare provider."
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if 'user_id' in session:
-        user = users.find_one({'user_id': session['user_id']})
-        return render_template('index.html', username=user['username'])
-    return render_template('index.html')
+def get_medical_info(predicted_disease, age=None, patient_history=None, other_conditions=None):
+    if not predicted_disease:
+        return None, [], ["No disease prediction available."]
+    
+    serious_doctors = [doc for doc in doctors_database if 
+                      (predicted_disease == doc.get('disease') and predicted_disease in serious_diseases) or 
+                      (doc.get('for_emergency') and predicted_disease in serious_diseases)]
+    
+    flash_msg_list = []
+    
+    description_data = description[description['Disease'] == predicted_disease]
+    precautions_data = precautions[precautions['Disease'] == predicted_disease]
+    medications_data = medications[medications['Disease'] == predicted_disease]
+    diets_data = diets[diets['Disease'] == predicted_disease]
+    workout_data = workout[workout['disease'] == predicted_disease]
+    
+    try:
+        related_articles = fetch_articles(predicted_disease)
+        
+        if not description_data.empty:
+            info_dict = {
+                'dis_des': description_data['Description'].iloc[0] if not description_data.empty else 
+                          "Description Not available. Please consult a Doctor for an in-depth understanding.",
+                
+                'my_precautions': precautions_data[['Precaution_1', 'Precaution_2', 'Precaution_3', 'Precaution_4']].values.tolist()[0] 
+                                if not precautions_data.empty else [DEFAULT_PRECAUTIONS],
+                
+                'medications': []
+            }
+            
+            if not medications_data.empty:
+                try:
+                    med_data = medications_data['Medication'].iloc[0]
+                    if isinstance(med_data, list):
+                        info_dict['medications'] = med_data
+                    elif isinstance(med_data, str):
+                        info_dict['medications'] = ast.literal_eval(med_data)
+                    else:
+                        info_dict['medications'] = ["Medication information not available in the expected format."]
+                except Exception as e:
+                    info_dict['medications'] = ["Error processing medication data."]
+            
+            if not diets_data.empty:
+                try:
+                    diet_data = diets_data['Diet'].iloc[0]
+                    if isinstance(diet_data, list):
+                        info_dict['rec_diet'] = diet_data
+                    elif isinstance(diet_data, str):
+                        info_dict['rec_diet'] = ast.literal_eval(diet_data)
+                    else:
+                        info_dict['rec_diet'] = ["Diet information not available in the expected format."]
+                except Exception as e:
+                    info_dict['rec_diet'] = ["Error processing diet data."]
+            else:
+                info_dict['rec_diet'] = ["No specific diet recommendations available."]
+            
+            info_dict['workout'] = workout_data['workout'].iloc[0] if not workout_data.empty else "No specific workout information available."
+            
+            info_dict['serious_doctors'] = serious_doctors
+            
+            if any(disease_match == predicted_disease for disease_match in serious_diseases):
+                flash_msg_list.append("You must immediately consult a doctor. Consider going to a nearby hospital or Doctor's clinic.")
+            
+            if patient_history and any(disease_match == predicted_disease for disease_match in serious_diseases):
+                if other_conditions and any(predicted_disease in condition for condition in other_conditions):
+                    if serious_doctors:
+                        message = f"Dr. {serious_doctors[0].get('name')} recommends continuing previous treatments that worked well with your condition."
+                        flash_msg_list.append(message)
+            
+            return info_dict, related_articles, flash_msg_list
+        else:
+            if patient_history and predicted_disease:
+                return {'serious_doctors': [doctor for doctor in serious_doctors if doctor.get("for_emergency")]}, [], ["Patient data history not available. There may still be serious medical issues that need urgent review."]
+            return None, [], ["No medical information available for the predicted condition."]
+    
+    except Exception as e:
+        print(f"Medical info error: {e}")
+        return None, [], [f"Error retrieving medical information: {str(e)}"]
 
 @app.route('/predict', methods=['GET', 'POST'])
 def predict():
@@ -115,75 +215,223 @@ def predict():
 
     if request.method == 'POST':
         symptoms = request.form.get('symptoms')
-        if not symptoms:  # Handle empty input
-            message = "Please enter symptoms."
-            return render_template('index.html', message=message)
-
+        if not symptoms:
+            flash("Please enter symptoms.", 'error')
+            return redirect(url_for('predict'))
 
         patient_symptoms = [s.strip() for s in symptoms.split(',')]
-        patient_symptoms = [symptom.strip("[]' ") for symptom in patient_symptoms]
-
-
         corrected_symptoms = []
+        
         for symptom in patient_symptoms:
-            corrected_symptom = correct_spelling(symptom)
+            corrected_symptom = correct_symptom_spelling(symptom.lower())
             if corrected_symptom:
                 corrected_symptoms.append(corrected_symptom)
-            else:
-                message = f"Symptom '{symptom}' not found in the database."
-                return render_template('index.html', message=message)
-        
+
         if not corrected_symptoms:
-            message = "No valid symptoms entered."
-            return render_template('index.html', message=message)
+            message_for_invalid_symptoms = ["No valid symptoms entered. Please check your entries and try again."]
+            user = users.find_one({'user_id': session['user_id']})
+            return render_template('index.html', message=message_for_invalid_symptoms, username=user['username'])
 
-        predicted_disease = predicted_value(corrected_symptoms)
-        dis_des, precautions, medications, rec_diet, workout = information(predicted_disease)
+        predicted_disease = predict_disease(corrected_symptoms)
+        
+        if predicted_disease is None:
+            user = users.find_one({'user_id': session['user_id']})
+            return render_template('index.html', 
+                                  message=["No matching diseases found for submitted symptoms. Please provide additional details or consult a healthcare professional."],
+                                  username=user['username'])
 
-        my_precautions = []
-        for i in precautions[0]:
-            my_precautions.append(i)
-
-        medication_list = ast.literal_eval(medications[0])
-        medications = []
-        for item in medication_list:
-            medications.append(item)
-
-        diet_list = ast.literal_eval(rec_diet[0])
-        rec_diet = []
-        for item in diet_list:
-            rec_diet.append(item)
         user = users.find_one({'user_id': session['user_id']})
-        # Store prediction in MongoDB
-        prediction = {
-            'user_id': user['user_id'],
-            'symptoms': ', '.join(corrected_symptoms),
-            'predicted_disease': predicted_disease,
-            'timestamp': datetime.utcnow()
+        past_history = None
+        
+        if request.form.get('past_history'):
+            try:
+                past_history_input = request.form.get('past_history').strip()
+                if past_history_input:
+
+                    past_history_clean = past_history_input.strip("[]").replace('"', '')
+                    if past_history_clean:
+                        past_history = [tuple(item.strip().split(':')) for item in past_history_clean.split(",")]
+            except (ValueError, TypeError, AttributeError) as e:
+                flash(f"Past history details improperly formatted. Please use format: ['treatment1:disease1', 'treatment2:disease2']", 'error')
+                return redirect(url_for('predict'))
+        
+        other_conditions = None
+        if request.form.get('other_conditions'):
+            try:
+                other_conditions_input = request.form.get('other_conditions').strip()
+                if other_conditions_input:
+                    other_conditions = [cond.strip() for cond in other_conditions_input.split(',')]
+            except Exception as e:
+                flash("Other conditions improperly formatted. Please enter as comma-separated values.", 'error')
+                return redirect(url_for('predict'))
+        
+        age = None
+        if request.form.get('age'):
+            try:
+                age = int(request.form.get('age'))
+                if age <= 0 or age > 120:
+                    flash("Please enter a valid age between 1 and 120.", 'error')
+                    return redirect(url_for('predict'))
+            except ValueError:
+                flash("Age must be a number.", 'error')
+                return redirect(url_for('predict'))
+        
+        fitness_level = request.form.get('fitness_level')
+        
+        info_dict, related_articles, flash_messages = get_medical_info(
+            predicted_disease, 
+            age=age, 
+            patient_history=past_history,
+            other_conditions=other_conditions
+        )
+        
+        for msg in flash_messages:
+            flash(msg, 'info')
+        
+        workout_advice = personalized_workout(
+            predicted_disease,
+            age=age,
+            fitness_level=fitness_level,
+            other_conditions=other_conditions
+        )
+        
+        prediction_data = {
+            'user_id': session['user_id'],
+            'symptoms': corrected_symptoms,
+            'disease': predicted_disease,
+            'timestamp': datetime.now(),
+            'age': age,
+            'fitness_level': fitness_level,
+            'past_history': past_history,
+            'other_conditions': other_conditions
         }
-        predictions.insert_one(prediction)
+        predictions.insert_one(prediction_data)
+        
+        return render_template(
+            'results.html',
+            username=user['username'],
+            symptoms=corrected_symptoms,
+            disease=predicted_disease,
+            info=info_dict,
+            articles=related_articles,
+            workout_advice=workout_advice
+        )
+        
+    user = users.find_one({'user_id': session['user_id']})
+    return render_template('predict.html', username=user['username'])
 
-        return render_template('index.html', symptoms=corrected_symptoms, predicted_disease=predicted_disease,
-                               dis_des=dis_des, my_precautions=my_precautions, medications=medications,
-                               my_diet=rec_diet, workout=workout, username=user['username'])
-
-    return render_template('index.html')
 
 
 @app.route('/history')
 def history():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-
+    
     user = users.find_one({'user_id': session['user_id']})
-    user_predictions = predictions.find({'user_id': user['user_id']}).sort('timestamp', -1)
-    return render_template('history.html', predictions=user_predictions, username=user['username'])
+    if not user:
+        return redirect(url_for('login'))
+    
+    user_predictions = list(predictions.find({'user_id': session['user_id']}))
+    
+    if user_predictions:
+        print(f"First prediction document keys: {list(user_predictions[0].keys())}")
+        print(f"First prediction document content: {user_predictions[0]}")
+    else:
+        print("No prediction documents found for this user")
+    
+    formatted_predictions = []
+    for prediction in user_predictions:
+        symptoms_str = ""
+        if 'symptoms' in prediction:
+            if isinstance(prediction['symptoms'], list):
+                symptoms_str = ', '.join(prediction['symptoms'])
+            else:
+                symptoms_str = str(prediction['symptoms'])
+        
+        disease_value = prediction.get('disease', 
+                      prediction.get('predicted_disease', 
+                      prediction.get('prognosis', "Unknown")))
+        
+        timestamp = prediction.get('timestamp', datetime.now())
+        
+        formatted_predictions.append({
+            'symptoms': symptoms_str,
+            'predicted_disease': disease_value,
+            'timestamp': timestamp
+        })
+    
+    formatted_predictions.sort(key=lambda x: x['timestamp'], reverse=True)
+    
+    return render_template(
+        'history.html', 
+        username=user['username'], 
+        predictions=formatted_predictions
+    )
+    
+@app.route('/')
+def index():
+    if 'user_id' in session:
+        user = users.find_one({'user_id': session['user_id']})
+        if user:  
+            return render_template('index.html', username=user['username'])
+        else:
+            session.clear() 
+    return redirect(url_for('login'))
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        user = users.find_one({'username': username})
+        
+        if user and check_password_hash(user['password'], password):
+            session['user_id'] = user['user_id']
+            return redirect(url_for('index'))
+        flash('Invalid username or password', 'error')
+    
+    return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if password != confirm_password:
+            flash('Passwords do not match', 'error')
+            return render_template('register.html')
+        
+        if users.find_one({'username': username}):
+            flash('Username already exists', 'error')
+            return render_template('register.html')
+        
+        if users.find_one({'email': email}):
+            flash('Email already in use', 'error')
+            return render_template('register.html')
+        
+        hashed_password = generate_password_hash(password)
+        user_id = str(uuid.uuid4())
+        users.insert_one({
+            'user_id': user_id,
+            'username': username,
+            'email': email,
+            'password': hashed_password
+        })
+        
+        flash('Registration successful! Please login to continue.', 'success')
+        
+        return redirect(url_for('login'))
+    
+    return render_template('register.html')
 
 @app.route('/logout')
 def logout():
-    session.pop('user_id', None)
-    return redirect(url_for('index'))
+    session.clear()
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
     app.run(debug=True)

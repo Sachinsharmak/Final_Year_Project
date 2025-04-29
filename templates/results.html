@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Health Care Center | Analysis Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">    
+    <style>
+        :root {
+            --primary-color: #2C3E50;
+            --accent-color: #3498DB;
+            --light-bg: rgba(255, 255, 255, 0.95);
+            --gradient-start: #2C3E50;
+            --gradient-end: #3498DB;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end)) !important;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .logo:hover {
+            opacity: 0.9;
+        }
+
+        .myimg {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover .myimg {
+            transform: scale(1.1);
+        }
+
+        .main-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0;
+            background: transparent;
+        }
+
+        .results-header {
+            background: var(--light-bg);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .results-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--success-color), var(--accent-color));
+        }
+
+        .results-content {
+            background: var(--light-bg);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .results-header h2 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .symptoms-badge {
+            display: inline-block;
+            background-color: rgba(52, 152, 219, 0.15);
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 50px;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .disease-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            background-color: rgba(52, 152, 219, 0.15);
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background: linear-gradient(to right, rgba(44, 62, 80, 0.8), rgba(52, 152, 219, 0.8));
+            color: white;
+            font-weight: 600;
+            border-radius: 15px 15px 0 0 !important;
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .card-header i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .precaution-item, .diet-item, .workout-item, .medication-item {
+            margin-bottom: 0.75rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .precaution-item:before, .diet-item:before, .workout-item:before, .medication-item:before {
+            content: "•";
+            color: var(--accent-color);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .related-article {
+            display: block;
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            text-decoration: none;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+
+        .related-article:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            border-color: var(--accent-color);
+            transform: translateX(5px);
+        }
+
+        .btn-back {
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: none;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .footer {
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .footer h6 {
+            margin: 0;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        .alert-warning {
+            background-color: rgba(243, 156, 18, 0.15);
+            border-color: var(--warning-color);
+            color: #9a7117;
+        }
+
+        .alert-danger {
+            background-color: rgba(231, 76, 60, 0.15);
+            border-color: var(--danger-color);
+            color: #a64135;
+        }
+
+        .alert i {
+            margin-right: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 1rem;
+            }
+            
+            .results-header, .results-content {
+                padding: 1.5rem;
+            }
+
+            .card {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a href="/" class="logo">
+                <img class="myimg" src="static/img.png" alt="Healthcare Logo">
+                <h5 class="mb-0 text-white">Disease Prediction System</h5>
+            </a>
+            <div class="navbar-nav ms-auto">
+                {% if username %}
+                    <span class="navbar-text text-white me-3">Welcome, {{ username }}!</span>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/history">History</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/logout">Logout</a>
+                        </li>
+                    </ul>
+                {% else %}
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/login">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/register">Sign Up</a>
+                        </li>
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Result Header -->
+        <div class="results-header">
+            <div class="mb-4">
+                <h2><i class="fas fa-file-medical-alt me-2"></i>Health Analysis Report</h2>
+                <p class="text-muted mb-0">Based on your reported symptoms</p>
+            </div>
+            
+            <div class="mb-3">
+                <p class="mb-2"><strong>Symptoms analyzed:</strong></p>
+                {% for symptom in symptoms %}
+                    <span class="symptoms-badge">{{ symptom }}</span>
+                {% endfor %}
+            </div>
+            
+            <div class="mb-0">
+                <p class="mb-2"><strong>Predicted condition:</strong></p>
+                <div class="disease-name">{{ disease }}</div>
+            </div>
+        </div>
+        
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'info' %}
+                        <div class="alert alert-warning mb-4">
+                            <i class="fas fa-exclamation-triangle"></i>{{ message }}
+                        </div>
+                    {% elif category == 'error' or category == 'danger' %}
+                        <div class="alert alert-danger mb-4">
+                            <i class="fas fa-exclamation-circle"></i>{{ message }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Main Content -->
+        <div class="results-content">
+            <div class="row">
+                <!-- Description -->
+                <div class="col-md-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-info-circle"></i>Condition Description
+                        </div>
+                        <div class="card-body">
+                            <p>{{ info.dis_des }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Precautions -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-shield-alt"></i>Recommended Precautions
+                        </div>
+                        <div class="card-body">
+                            {% if info.my_precautions %}
+                                {% for precaution in info.my_precautions %}
+                                    {% if precaution %}
+                                        <div class="precaution-item">{{ precaution }}</div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <p>No specific precautions available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Medications -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-pills"></i>Recommended Medications
+                        </div>
+                        <div class="card-body">
+                            {% if info.medications %}
+                                {% for medication in info.medications %}
+                                    <div class="medication-item">{{ medication }}</div>
+                                {% endfor %}
+                            {% else %}
+                                <p>No specific medication information available.</p>
+                            {% endif %}
+                            <p class="text-muted mt-3"><small><i class="fas fa-exclamation-circle me-1"></i>Important: Always consult with a healthcare professional before taking any medication.</small></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Diet -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-utensils"></i>Dietary Recommendations
+                        </div>
+                        <div class="card-body">
+                            {% if info.rec_diet %}
+                                {% for diet in info.rec_diet %}
+                                    <div class="diet-item">{{ diet }}</div>
+                                {% endfor %}
+                            {% else %}
+                                <p>No specific dietary recommendations available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Workout -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-dumbbell"></i>Exercise Recommendations
+                        </div>
+                        <div class="card-body">
+                            {% if workout_advice %}
+                                <p>{{ workout_advice }}</p>
+                            {% else %}
+                                <p>No specific exercise recommendations available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Related Articles -->
+                {% if articles and articles|length > 0 %}
+                <div class="col-md-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-newspaper"></i>Related Resources
+                        </div>
+                        <div class="card-body">
+                            {% for article in articles %}
+                                <a href="{{ article }}" target="_blank" class="related-article">
+                                    <i class="fas fa-external-link-alt me-2"></i>{{ article }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+            <!-- Doctors (if serious condition) -->
+            {% if info.serious_doctors and info.serious_doctors|length > 0 %}
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <i class="fas fa-user-md"></i> Recommended Specialists
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3">
+                            <strong class="text-danger">This condition requires professional medical attention.</strong>
+                        </p>
+                        <p>The following specialists are recommended for your condition:</p>
+                        <ul class="list-unstyled">
+                            {% for doctor in info.serious_doctors %}
+                                <li class="mb-2">
+                                    <strong>{{ doctor.name }}</strong><br>
+                                    Specializes in: {{ doctor.disease }}<br>
+                                    Hospital: {{ doctor.hospital }}<br>
+                                    Contact: <a href="tel:{{ doctor.contact }}">{{ doctor.contact }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <p class="text-danger mt-3">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Please seek medical assistance promptly.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="/predict" class="btn btn-back me-2">
+                    <i class="fas fa-arrow-left me-2"></i>Advanced Analysis
+                </a>
+                <a href="/history" class="btn btn-outline-primary">
+                    <i class="fas fa-history me-2"></i>View History
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <h6><i class="fas fa-code me-2"></i>Developed by:Sachin, Ritesh, Faisal, Bikash</h6>
+    </div>
+</body>
+</html>
