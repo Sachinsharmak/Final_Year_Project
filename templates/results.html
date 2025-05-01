@@ -432,10 +432,10 @@
                         <ul class="list-unstyled">
                             {% for doctor in info.serious_doctors %}
                                 <li class="mb-2">
-                                    <strong>{{ doctor.name }}</strong><br>
-                                    Specializes in: {{ doctor.disease }}<br>
-                                    Hospital: {{ doctor.hospital }}<br>
-                                    Contact: <a href="tel:{{ doctor.contact }}">{{ doctor.contact }}</a>
+                                    <strong>{{ doctor.Name }}</strong><br>
+                                    Specializes in: {{ doctor.Disease }}<br>
+                                    Hospital: {{ doctor.Hospital }}<br>
+                                    Contact: <a href="tel:{{ doctor.Contact }}">{{ doctor.Contact }}</a>
                                 </li>
                             {% endfor %}
                         </ul>
@@ -447,6 +447,7 @@
                 </div>
             </div>
             {% endif %}
+
 
             </div>
             

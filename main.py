@@ -10,9 +10,10 @@ import uuid
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = "General_Secret_Key"
-app.config["MONGO_URI"] = "Enter MongoDb Connection String Here"  
+app.secret_key = "Generate a random secret key for your app"
+app.config["MONGO_URI"] = "Enter the MongoDb Atlas URL"  
 mongo = PyMongo(app)
+
 
 users = mongo.db.users
 predictions = mongo.db.predictions
@@ -33,25 +34,25 @@ DEFAULT_PRECAUTIONS = "Please consult with a doctor immediately, it appears to b
 
 doctors_database = [
     {
-        "Name": "Dr. Ritesh Raj",
-        "Disease": "Heart attack",
-        "For_emergency": True,
-        "Hospital": "AIIMS Delhi",
-        "Contact": "+91-93239*****"
+        "name": "Dr. Ritesh Raj",
+        "disease": "Heart attack",
+        "for_emergency": True,
+        "hospital": "AIIMS Delhi",
+        "contact": "+91-93239*****"
     },
     {
-        "Name": "Dr. Anjali Verma",
-        "Disease": "Stroke",
-        "For_emergency": True,
-        "Hospital": "Fortis Hospital Mumbai",
-        "Contact": "+91-91234*****"
+        "name": "Dr. Anjali Verma",
+        "disease": "Stroke",
+        "for_emergency": True,
+        "hospital": "Fortis Hospital Mumbai",
+        "contact": "+91-91234*****"
     },
     {
-        "Name": "Dr. Suresh Iyer",
-        "Disease": "Tuberculosis",
-        "For_emergency": False,
-        "Hospital": "Apollo Hospital Chennai",
-        "Contact": "+91-99887*****"
+        "name": "Dr. Suresh Iyer",
+        "disease": "Tuberculosis",
+        "for_emergency": False,
+        "hospital": "Apollo Hospital Chennai",
+        "contact": "+91-99887*****"
     }
 ]
 
